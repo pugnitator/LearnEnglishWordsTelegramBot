@@ -10,5 +10,5 @@ fun main() {
 //    wordsFile.appendText("dog собака")
 //    wordsFile.appendText("cat кошка")
 
-    println(wordsFile.readLines())
+    for (i in wordsFile.readLines()) println(i)
 }
