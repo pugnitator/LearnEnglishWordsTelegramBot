@@ -24,7 +24,7 @@ fun main() {
             1 -> TODO("переходим к изучению слов")
             2 -> {
                 val numberOfWords = dictionary.size
-                val numberOfLearnedWords = dictionary.filter { it.numberOfCorrectAnswers!! >= 3 }.size
+                val numberOfLearnedWords = dictionary.filter { it.numberOfCorrectAnswers >= 3 }.size
                 val percentageOfWordsLearned = numberOfLearnedWords.toFloat() / numberOfWords * 100
 
                 println("Выучено $numberOfLearnedWords из $numberOfWords слов | ${String.format("%.2f", percentageOfWordsLearned)}%")
