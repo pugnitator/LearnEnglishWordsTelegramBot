@@ -22,12 +22,30 @@ fun main() {
         when (inputValue) {
             0 -> continue
             1 -> {
-                do{
-                    shuffle(dictionary)
-                    val wordToStudy: Word = dictionary[0]
-                    val answerOptions: MutableList<Word> =
-                    println("Выберите правильный перевод для слова $wordToStudy из вариантов ниже:")
-                }while ()
+                do {
+                    shuffle(dictionary.filter { it.numberOfCorrectAnswers < 3 })
+                    val wordToStudy: Word = dictionary.last()
+                    val answerOptions: List<Word> = dictionary.takeLast(5)
+                    println("Выберите правильный перевод для слова ${wordToStudy.original} из вариантов ниже:")
+                    do {
+                        shuffle(answerOptions)
+                        answerOptions.forEach { println(it.translation) }
+                        val answer = readln()
+                        val isAnswerCorrect = answer == wordToStudy.translation
+                        when (isAnswerCorrect) {
+                            true -> {
+                                println("Ответ правильный, отлично!")
+                                wordToStudy.numberOfCorrectAnswers += 1
+                            }
+                            else -> println("Неверно, попробуйте ещё раз.")
+                        }
+                    } while (!isAnswerCorrect)
+
+                    println("Продолжить изучение слов? Выберите нужный вариант: 1 - Да, 0 - Нет.")
+                    var isHeWantToContinue = readln().toIntOrNull() ?: 0
+                    if (isHeWantToContinue != 1) isHeWantToContinue = 0
+
+                } while (isHeWantToContinue == 1)
 //                for (i in dictionary.filter { it.numberOfCorrectAnswers < 3 }) {
 //                    do {
 //                        println("Выберите правильный перевод для слова ${i.original} из вариантов ниже:")
@@ -47,7 +65,6 @@ fun main() {
 //                            }
 //                        }
 //                    } while ()
-                }
             }
 
             2 -> {
