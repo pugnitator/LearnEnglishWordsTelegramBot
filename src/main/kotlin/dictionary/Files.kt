@@ -14,44 +14,46 @@ fun main() {
         dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
     }
 //    dictionary.forEach { println(it) }
-    val numberOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < 3 }.size
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
         val inputValue = readln().toIntOrNull() ?: 999
         when (inputValue) {
             0 -> continue
             1 -> {
-                if (numberOfUnlearnedWords > 0) {
+                do {
+                    val numberOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < 3 }.size
+                    if (numberOfUnlearnedWords == 0) {
+                        println("Вы выучили все слова.")
+                        break
+                    }
+                    val wordToStudy: Word = dictionary.filter { it.numberOfCorrectAnswers < 3 }.shuffled().last()
+                    var answerOptions: List<Word> = dictionary.takeLast(5)
+                    println("Введите номер правильного перевода для слова ${wordToStudy.original}:")
                     do {
-
-                        val wordToStudy: Word =
-                            dictionary.filter { it.numberOfCorrectAnswers < 3 }.shuffled().last()
-                        var answerOptions: List<Word> = dictionary.takeLast(5)
-                        println("Выберите правильный перевод для слова ${wordToStudy.original} из вариантов ниже:")
-                        do {
-                            answerOptions = answerOptions.shuffled()
-                            val correctAnswer = answerOptions.indexOf(wordToStudy) + 1
-                            answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
-                            val answer = readln().toIntOrNull() ?: 0
-                            val isAnswerCorrect = answer == correctAnswer
-                            when (isAnswerCorrect) {
-                                true -> {
-                                    println("Ответ правильный, отлично!")
-                                    wordToStudy.numberOfCorrectAnswers += 1
-                                }
-
-                                else -> println("Неверно, попробуйте ещё раз.")
+                        answerOptions = answerOptions.shuffled()
+                        val correctAnswer = answerOptions.indexOf(wordToStudy) + 1
+                        answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+                        val answer = readln().toIntOrNull() ?: 0
+                        val isAnswerCorrect = answer == correctAnswer
+                        when (isAnswerCorrect) {
+                            true -> {
+                                println("Ответ правильный, отлично!")
+                                wordToStudy.numberOfCorrectAnswers += 1
                             }
-                        } while (!isAnswerCorrect)
 
-                        println("Продолжить изучение слов? Выберите нужный вариант: 1 - Да, 0 - Нет.")
-                        var isHeWantToContinue = readln().toIntOrNull() ?: 0
-                        if (isHeWantToContinue != 1) isHeWantToContinue = 0
+                            else -> println("Неверно, попробуйте ещё раз.")
+                        }
+                    } while (!isAnswerCorrect)
 
-                    } while (isHeWantToContinue == 1)
-                } else println("Вы выучили все слова.")
+                    println("Продолжить изучение слов? Выберите нужный вариант: 1 - Да, 0 - Нет.")
+                    val isHeWantToContinue = readln().toIntOrNull() ?: 0
+                    when (isHeWantToContinue) {
+                        1 -> continue
+                        else -> break
+                    }
+
+                } while (isHeWantToContinue == 1)
             }
-
             2 -> {
                 val numberOfWords = dictionary.size
                 val numberOfLearnedWords = dictionary.filter { it.numberOfCorrectAnswers >= 3 }.size
