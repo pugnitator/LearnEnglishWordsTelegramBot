@@ -20,43 +20,41 @@ fun main() {
         when (inputValue) {
             0 -> continue
             1 -> {
-                do {
-                    val numberOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < 3 }.size
+//                do {
+                    var listOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }
+                    val numberOfUnlearnedWords = listOfUnlearnedWords.size
                     if (numberOfUnlearnedWords == 0) {
                         println("Вы выучили все слова.")
                         break
                     }
-                    val wordToStudy: Word = dictionary.filter { it.numberOfCorrectAnswers < 3 }.shuffled().last()
-                    var answerOptions: List<Word> = dictionary.takeLast(5)
-                    println("Введите номер правильного перевода для слова ${wordToStudy.original}:")
                     do {
+                        listOfUnlearnedWords = listOfUnlearnedWords.shuffled()
+                        val wordToStudy: Word = listOfUnlearnedWords.last()
+
+                        var answerOptions: List<Word> = dictionary.takeLast(NUMBER_OF_WORDS_DISPLAYED)
                         answerOptions = answerOptions.shuffled()
                         val correctAnswer = answerOptions.indexOf(wordToStudy) + 1
-                        answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+
+                        println("Введите номер правильного перевода для слова ${wordToStudy.original}. Для выхода введите 0.")
+                        answerOptions.shuffled().forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+
                         val answer = readln().toIntOrNull() ?: 0
-                        val isAnswerCorrect = answer == correctAnswer
-                        when (isAnswerCorrect) {
-                            true -> {
+                        when (answer) {
+                            correctAnswer -> {
                                 println("Ответ правильный, отлично!")
                                 wordToStudy.numberOfCorrectAnswers += 1
                             }
-
+                            0 -> break
                             else -> println("Неверно, попробуйте ещё раз.")
                         }
-                    } while (!isAnswerCorrect)
-
-                    println("Продолжить изучение слов? Выберите нужный вариант: 1 - Да, 0 - Нет.")
-                    val isHeWantToContinue = readln().toIntOrNull() ?: 0
-                    when (isHeWantToContinue) {
-                        1 -> continue
-                        else -> break
-                    }
-
-                } while (isHeWantToContinue == 1)
+                    } while (answer != 0)
+//                } while ()
             }
+
             2 -> {
                 val numberOfWords = dictionary.size
-                val numberOfLearnedWords = dictionary.filter { it.numberOfCorrectAnswers >= 3 }.size
+                val numberOfLearnedWords =
+                    dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }.size
                 val percentageOfWordsLearned = numberOfLearnedWords.toFloat() / numberOfWords * 100
 
                 println(
@@ -80,3 +78,5 @@ fun main() {
 
 }
 
+const val LIMIT_OF_CORRECT_ANSWER = 3
+const val NUMBER_OF_WORDS_DISPLAYED = 4
