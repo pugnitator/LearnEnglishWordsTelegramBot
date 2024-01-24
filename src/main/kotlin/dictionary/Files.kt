@@ -1,3 +1,5 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package org.example.dictionary
 
 import java.io.File
@@ -20,25 +22,30 @@ fun main() {
         when (inputValue) {
             0 -> continue
             1 -> {
-//                do {
-                    var listOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }
-                    val numberOfUnlearnedWords = listOfUnlearnedWords.size
-                    if (numberOfUnlearnedWords == 0) {
-                        println("Вы выучили все слова.")
-                        break
-                    }
-                    do {
-                        listOfUnlearnedWords = listOfUnlearnedWords.shuffled()
-                        val wordToStudy: Word = listOfUnlearnedWords.last()
+                val listOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }
+                if (listOfUnlearnedWords.isEmpty()) {
+                    println("Вы выучили все слова.")
+                    break
+                }
 
-                        var answerOptions: List<Word> = dictionary.takeLast(NUMBER_OF_WORDS_DISPLAYED)
-                        answerOptions = answerOptions.shuffled()
+                do {
+                    // выбираем список из 4х слов, перевод одного из которых будем запрашивать
+                    var answerOptions : List<Word> = listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED)
+//                    TODO("Что делаем, если у нас менее $NUMBER_OF_WORDS_DISPLAYED слов в списке?")
+
+                    // определяем слово, которое будем изучать в этом цикле
+                    val wordToStudy: Word = answerOptions.random()
+                    var answer: Int
+
+                    //запрашиваем перевод одного и того же слова до тех пор, пока не будет введён верный ответ
+                    do{
+                        println("Введите номер правильного перевода для слова ${wordToStudy.original}. Для выхода введите 0.")
+
+                        answerOptions = answerOptions.shuffled() // при неверном ответе переводы будут в новом порядке
+                        answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                         val correctAnswer = answerOptions.indexOf(wordToStudy) + 1
 
-                        println("Введите номер правильного перевода для слова ${wordToStudy.original}. Для выхода введите 0.")
-                        answerOptions.shuffled().forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
-
-                        val answer = readln().toIntOrNull() ?: 0
+                        answer = readln().toIntOrNull() ?: 0
                         when (answer) {
                             correctAnswer -> {
                                 println("Ответ правильный, отлично!")
@@ -47,8 +54,9 @@ fun main() {
                             0 -> break
                             else -> println("Неверно, попробуйте ещё раз.")
                         }
-                    } while (answer != 0)
-//                } while ()
+                    } while (answer != correctAnswer)
+
+                } while (answer != 0)
             }
 
             2 -> {
