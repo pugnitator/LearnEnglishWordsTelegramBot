@@ -1,11 +1,9 @@
-@file:Suppress("UNREACHABLE_CODE")
-
 package org.example.dictionary
 
 import java.io.File
 
 fun main() {
-    val dictionary: MutableList<Word> = mutableListOf()
+    val dictionary: MutableSet<Word> = mutableSetOf()
     val wordsFile = File("words.txt")
 //    wordsFile.createNewFile()
 //    wordsFile.appendText("hello привет")
@@ -15,33 +13,36 @@ fun main() {
         val line = line.split('|')
         dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
     }
-//    dictionary.forEach { println(it) }
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
         val inputValue = readln().toIntOrNull() ?: 999
         when (inputValue) {
             0 -> continue
             1 -> {
-                val listOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }
-                if (listOfUnlearnedWords.isEmpty()) {
-                    println("Вы выучили все слова.")
-                    break
-                }
-
                 do {
+                    val listOfUnlearnedWords = dictionary.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }
+                    if (listOfUnlearnedWords.isEmpty()) {
+                        println("Вы выучили все слова.")
+                        break
+                    }
+
                     // выбираем список из 4х слов, перевод одного из которых будем запрашивать
-                    var answerOptions : List<Word> = listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED)
-//                    TODO("Что делаем, если у нас менее $NUMBER_OF_WORDS_DISPLAYED слов в списке?")
+                    var answerOptions = listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED).toMutableSet()
+                    if (answerOptions.size < NUMBER_OF_WORDS_DISPLAYED) {
+                        do {
+                            answerOptions.add(dictionary.random())
+                        }while (answerOptions.size != NUMBER_OF_WORDS_DISPLAYED)
+                    }
 
                     // определяем слово, которое будем изучать в этом цикле
                     val wordToStudy: Word = answerOptions.random()
                     var answer: Int
 
-                    //запрашиваем перевод одного и того же слова до тех пор, пока не будет введён верный ответ
-                    do{
+                    //запрашиваем перевод одного и того же слова до тех пор, пока не будет введён верный ответ или 0
+                    do {
                         println("Введите номер правильного перевода для слова ${wordToStudy.original}. Для выхода введите 0.")
 
-                        answerOptions = answerOptions.shuffled() // при неверном ответе переводы будут в новом порядке
+                        answerOptions = answerOptions.shuffled().toMutableSet()
                         answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                         val correctAnswer = answerOptions.indexOf(wordToStudy) + 1
 
@@ -51,6 +52,7 @@ fun main() {
                                 println("Ответ правильный, отлично!")
                                 wordToStudy.numberOfCorrectAnswers += 1
                             }
+
                             0 -> break
                             else -> println("Неверно, попробуйте ещё раз.")
                         }
