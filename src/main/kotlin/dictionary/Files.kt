@@ -15,7 +15,7 @@ fun main() {
     }
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
-        val inputValue = readln().toIntOrNull() ?: 999
+        val inputValue = readln().toIntOrNull()
         when (inputValue) {
             0 -> continue
             1 -> {
@@ -28,17 +28,18 @@ fun main() {
 
                     // выбираем список из 4х слов, перевод одного из которых будем запрашивать
                     var answerOptions = listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED).toMutableSet()
+
                     if (answerOptions.size < NUMBER_OF_WORDS_DISPLAYED) {
-                        do {
-                            answerOptions.add(dictionary.random())
-                        }while (answerOptions.size != NUMBER_OF_WORDS_DISPLAYED)
+                        val numberOfMissingWords = NUMBER_OF_WORDS_DISPLAYED - answerOptions.size
+                        for (i: Word in dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }
+                            .shuffled().takeLast(numberOfMissingWords)) answerOptions.add(i)
                     }
 
                     // определяем слово, которое будем изучать в этом цикле
                     val wordToStudy: Word = answerOptions.random()
                     var answer: Int
 
-                    //запрашиваем перевод одного и того же слова до тех пор, пока не будет введён верный ответ или 0
+                    //запрашиваем перевод отобранного для изучения слова
                     do {
                         println("Введите номер правильного перевода для слова ${wordToStudy.original}. Для выхода введите 0.")
 
@@ -67,14 +68,8 @@ fun main() {
                     dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }.size
                 val percentageOfWordsLearned = numberOfLearnedWords.toFloat() / numberOfWords * 100
 
-                println(
-                    "Выучено $numberOfLearnedWords из $numberOfWords слов | ${
-                        String.format(
-                            "%.2f",
-                            percentageOfWordsLearned
-                        )
-                    }%"
-                )
+                println("Выучено $numberOfLearnedWords из $numberOfWords слов | " +
+                            "${String.format("%.2f",percentageOfWordsLearned)}%")
                 println()
             }
 
