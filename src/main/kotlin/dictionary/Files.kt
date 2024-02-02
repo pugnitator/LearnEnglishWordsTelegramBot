@@ -5,10 +5,6 @@ import java.io.File
 fun main() {
     val dictionary: MutableSet<Word> = mutableSetOf()
     val wordsFile = File("words.txt")
-//    wordsFile.createNewFile()
-//    wordsFile.appendText("hello привет")
-//    wordsFile.appendText("dog собака")
-//    wordsFile.appendText("cat кошка")
     for (line in wordsFile.readLines()) {
         val line = line.split('|')
         dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
@@ -31,8 +27,8 @@ fun main() {
 
                     if (answerOptions.size < NUMBER_OF_WORDS_DISPLAYED) {
                         val numberOfMissingWords = NUMBER_OF_WORDS_DISPLAYED - answerOptions.size
-                        for (i: Word in dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }
-                            .shuffled().takeLast(numberOfMissingWords)) answerOptions.add(i)
+                        answerOptions.addAll(dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }
+                            .shuffled().takeLast(numberOfMissingWords))
                     }
 
                     // определяем слово, которое будем изучать в этом цикле
