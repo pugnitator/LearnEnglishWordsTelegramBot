@@ -23,7 +23,8 @@ fun main() {
                     }
 
                     // выбираем список из 4х слов, перевод одного из которых будем запрашивать
-                    var answerOptions = listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED).toMutableSet()
+                    var answerOptions =
+                        listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED).toMutableSet()
 
                     if (answerOptions.size < NUMBER_OF_WORDS_DISPLAYED) {
                         val numberOfMissingWords = NUMBER_OF_WORDS_DISPLAYED - answerOptions.size
@@ -32,7 +33,7 @@ fun main() {
                     }
 
                     // определяем слово, которое будем изучать в этом цикле
-                    val wordToStudy: Word = answerOptions.random()
+                    val wordToStudy: Word = answerOptions.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }.random()
                     var answer: Int
 
                     //запрашиваем перевод отобранного для изучения слова
@@ -48,6 +49,7 @@ fun main() {
                             correctAnswer -> {
                                 println("Ответ правильный, отлично!")
                                 wordToStudy.numberOfCorrectAnswers += 1
+                                wordsFile.saveDictionary(dictionary)
                             }
 
                             0 -> break
@@ -64,8 +66,10 @@ fun main() {
                     dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }.size
                 val percentageOfWordsLearned = numberOfLearnedWords.toFloat() / numberOfWords * 100
 
-                println("Выучено $numberOfLearnedWords из $numberOfWords слов | " +
-                            "${String.format("%.2f",percentageOfWordsLearned)}%")
+                println(
+                    "Выучено $numberOfLearnedWords из $numberOfWords слов | " +
+                            "${String.format("%.2f", percentageOfWordsLearned)}%"
+                )
                 println()
             }
 
@@ -77,6 +81,14 @@ fun main() {
 
     } while (inputValue != 0)
 
+}
+
+fun File.saveDictionary(dictionary: MutableSet<Word>) {
+    writeText("")
+    for (i in dictionary) {
+        if (i != dictionary.last()) appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}\n")
+        else appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}")
+    }
 }
 
 const val LIMIT_OF_CORRECT_ANSWER = 3

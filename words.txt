@@ -3,5 +3,5 @@ dog|собака|3
 cat|кошка|3
 pig|свинья|3
 water|вода|1
-rooster|петух|2
+rooster|петух|3
 victim|жертва|3
