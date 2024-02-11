@@ -9,6 +9,7 @@ fun main() {
         val line = line.split('|')
         dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
     }
+
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
         val inputValue = readln().toIntOrNull()
@@ -26,14 +27,15 @@ fun main() {
                     var answerOptions =
                         listOfUnlearnedWords.shuffled().takeLast(NUMBER_OF_WORDS_DISPLAYED).toMutableSet()
 
+                    // определяем слово, которое будем изучать в этом цикле
+                    val wordToStudy: Word = answerOptions.random()
+
+                    // дополняем список недостающими словами, если нужно
                     if (answerOptions.size < NUMBER_OF_WORDS_DISPLAYED) {
                         val numberOfMissingWords = NUMBER_OF_WORDS_DISPLAYED - answerOptions.size
                         answerOptions.addAll(dictionary.filter { it.numberOfCorrectAnswers >= LIMIT_OF_CORRECT_ANSWER }
                             .shuffled().takeLast(numberOfMissingWords))
                     }
-
-                    // определяем слово, которое будем изучать в этом цикле
-                    val wordToStudy: Word = answerOptions.filter { it.numberOfCorrectAnswers < LIMIT_OF_CORRECT_ANSWER }.random()
                     var answer: Int
 
                     //запрашиваем перевод отобранного для изучения слова
@@ -83,11 +85,10 @@ fun main() {
 
 }
 
-fun File.saveDictionary(dictionary: MutableSet<Word>) {
+fun File.saveDictionary(dictionary: Set<Word>) {
     writeText("")
     for (i in dictionary) {
-        if (i != dictionary.last()) appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}\n")
-        else appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}")
+        appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}\n")
     }
 }
 
