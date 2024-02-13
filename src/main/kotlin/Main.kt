@@ -1,8 +1,12 @@
 package org.example.dictionary
 
 fun main() {
-
-    val trainer = LearningWordsTrainer()
+    val trainer = try {
+        LearningWordsTrainer(3, 4)
+    } catch (e: Exception) {
+        println("Не удалось загрузить словарь.")
+        return
+    }
 
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
@@ -17,12 +21,12 @@ fun main() {
                     }
 
                     val question = trainer.getNextQuestion()
-                    var userAnswer: Int
+                    var userAnswer: Int?
 
                     do {
                         println("Введите номер правильного перевода для слова ${question.wordToStudy.original}. Для выхода введите 0.")
                         question.printAnswerOptions()
-                        userAnswer = readln().toIntOrNull() ?: 0
+                        userAnswer = readln().toIntOrNull()
                         if (userAnswer == 0) break
                         val isAnswerCorrect = trainer.isAnswerCorrect(question, userAnswer)
                     } while (!isAnswerCorrect)
@@ -45,6 +49,3 @@ fun main() {
         }
     } while (inputValue != 0)
 }
-
-const val LIMIT_OF_CORRECT_ANSWER = 3
-const val NUMBER_OF_WORDS_DISPLAYED = 4
