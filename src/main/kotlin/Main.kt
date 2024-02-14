@@ -15,7 +15,7 @@ fun main() {
             0 -> continue
             1 -> {
                 do {
-                    if (trainer.listOfUnlearnedWords.isEmpty()) {
+                    if (trainer.getListOfUnlearnedWords().isEmpty()) {
                         println("Вы выучили все слова.")
                         break
                     }
@@ -25,10 +25,16 @@ fun main() {
 
                     do {
                         println("Введите номер правильного перевода для слова ${question.wordToStudy.original}. Для выхода введите 0.")
-                        question.printAnswerOptions()
+                        question.answerOptions = question.answerOptions.shuffled().toMutableSet()
+                        question.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                         userAnswer = readln().toIntOrNull()
+
                         if (userAnswer == 0) break
+
                         val isAnswerCorrect = trainer.isAnswerCorrect(question, userAnswer)
+                        if (isAnswerCorrect) println("Ответ правильный, отлично!")
+                        else println("Неверно, попробуйте ещё раз.")
+
                     } while (!isAnswerCorrect)
 
                 } while (userAnswer != 0)
