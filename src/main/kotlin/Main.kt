@@ -1,12 +1,13 @@
 package org.example.dictionary
 
 fun main() {
-    val trainer = try {
-        LearningWordsTrainer(3, 4)
-    } catch (e: Exception) {
-        println("Не удалось загрузить словарь.")
-        return
-    }
+    val trainer = LearningWordsTrainer(3, 4)
+//    val trainer = try {
+//        LearningWordsTrainer(3, 4)
+//    } catch (e: Exception) {
+//        println("Не удалось загрузить словарь.")
+//        return
+//    }
 
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
@@ -20,18 +21,20 @@ fun main() {
                         break
                     }
 
-                    val question = trainer.getNextQuestion()
+//                    val question = trainer.currentQuestion
                     var userAnswer: Int?
 
                     do {
-                        println("Введите номер правильного перевода для слова ${question.wordToStudy.original}. Для выхода введите 0.")
-                        question.answerOptions = question.answerOptions.shuffled().toMutableSet()
-                        question.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+                        println("Введите номер правильного перевода для слова ${trainer.currentQuestion.wordToStudy.original}. Для выхода введите 0.")
+//                        question.answerOptions = question.answerOptions.shuffled().toMutableSet()
+                        trainer.currentQuestion.shuffledAnswerOptions()
+//                        question.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+                        trainer.currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                         userAnswer = readln().toIntOrNull()
 
                         if (userAnswer == 0) break
 
-                        val isAnswerCorrect = trainer.isAnswerCorrect(question, userAnswer)
+                        val isAnswerCorrect = trainer.isAnswerCorrect(userAnswer)
                         if (isAnswerCorrect) println("Ответ правильный, отлично!")
                         else println("Неверно, попробуйте ещё раз.")
 

@@ -18,18 +18,22 @@ data class Statistics(
 class Question(
     var answerOptions: MutableSet<Word>,
     val wordToStudy: Word,
-)
+) {
+    fun shuffledAnswerOptions(): MutableSet<Word> = answerOptions.shuffled().toMutableSet()
+}
 
 class LearningWordsTrainer(
     private val limitOfCorrectAnswers: Int = 3,
     private val numberOfWordsToDisplayed: Int = 4,
+    private val wordsFileName: String = "words.txt",
 ) {
     private val dictionary = loadDictionary()
+    val currentQuestion: Question = getNextQuestion()
 
     private fun loadDictionary(): Set<Word> {
         try {
             val dictionary: MutableSet<Word> = mutableSetOf()
-            val wordsFile = File("words.txt")
+            val wordsFile = File(wordsFileName)
             for (line in wordsFile.readLines()) {
                 val line = line.split('|')
                 dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
@@ -40,21 +44,21 @@ class LearningWordsTrainer(
         }
     }
 
-    private fun getListOfLearnedWords() = dictionary.filter { it.numberOfCorrectAnswers >= limitOfCorrectAnswers }
-
-    fun getListOfUnlearnedWords() = dictionary.filter { it.numberOfCorrectAnswers < limitOfCorrectAnswers }
-
-    fun saveDictionary() {
-        val wordsFile = File("words.txt")
+    private fun saveDictionary() {
+        val wordsFile = File(wordsFileName)
         wordsFile.writeText("")
         for (i in dictionary) {
             wordsFile.appendText("${i.original}|${i.translation}|${i.numberOfCorrectAnswers}\n")
         }
     }
 
+    private fun getListOfLearnedWords() = dictionary.filter { it.numberOfCorrectAnswers >= limitOfCorrectAnswers }
+
+    fun getListOfUnlearnedWords() = dictionary.filter { it.numberOfCorrectAnswers < limitOfCorrectAnswers }
+
     fun getNextQuestion(): Question {
         var answerOptions = getListOfUnlearnedWords().shuffled().takeLast(numberOfWordsToDisplayed).toMutableSet()
-        val wordToStudy = answerOptions.random()
+        val wordToStudy = answerOptions.randomOrNull()
 
         if (answerOptions.size < numberOfWordsToDisplayed) {
             val numberOfMissingWords = numberOfWordsToDisplayed - answerOptions.size
@@ -65,11 +69,21 @@ class LearningWordsTrainer(
         return Question(answerOptions, wordToStudy)
     }
 
-    fun isAnswerCorrect(question: Question, userAnswer: Int?): Boolean {
-        val correctAnswer = question.answerOptions.indexOf(question.wordToStudy) + 1
+//    fun isAnswerCorrect(question: Question, userAnswer: Int?): Boolean {
+//        val correctAnswer = question.answerOptions.indexOf(question.wordToStudy) + 1
+//        val isAnswerCorrect = userAnswer == correctAnswer
+//        if (isAnswerCorrect) {
+//            question.wordToStudy.numberOfCorrectAnswers += 1
+//            saveDictionary()
+//        }
+//        return isAnswerCorrect
+//    }
+
+    fun isAnswerCorrect(userAnswer: Int?): Boolean {
+        val correctAnswer = currentQuestion.answerOptions.indexOf(currentQuestion.wordToStudy) + 1
         val isAnswerCorrect = userAnswer == correctAnswer
         if (isAnswerCorrect) {
-            question.wordToStudy.numberOfCorrectAnswers += 1
+            currentQuestion.wordToStudy.numberOfCorrectAnswers += 1
             saveDictionary()
         }
         return isAnswerCorrect
