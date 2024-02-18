@@ -28,7 +28,8 @@ class LearningWordsTrainer(
     private val wordsFileName: String = "words.txt",
 ) {
     private val dictionary = loadDictionary()
-    val currentQuestion: Question = getNextQuestion()
+    private var currentQuestion: Question? = null
+
 
     private fun loadDictionary(): Set<Word> {
         try {
@@ -54,37 +55,34 @@ class LearningWordsTrainer(
 
     private fun getListOfLearnedWords() = dictionary.filter { it.numberOfCorrectAnswers >= limitOfCorrectAnswers }
 
-    fun getListOfUnlearnedWords() = dictionary.filter { it.numberOfCorrectAnswers < limitOfCorrectAnswers }
+    private fun getListOfUnlearnedWords() = dictionary.filter { it.numberOfCorrectAnswers < limitOfCorrectAnswers }
 
-    fun getNextQuestion(): Question {
+    fun getNextQuestion(): Question? {
         var answerOptions = getListOfUnlearnedWords().shuffled().takeLast(numberOfWordsToDisplayed).toMutableSet()
-        val wordToStudy = answerOptions.randomOrNull()
+        if (answerOptions.isEmpty()) currentQuestion = null
+        else {
+            val wordToStudy = answerOptions.random()
+            if (answerOptions.size < numberOfWordsToDisplayed) {
+                val numberOfMissingWords = numberOfWordsToDisplayed - answerOptions.size
 
-        if (answerOptions.size < numberOfWordsToDisplayed) {
-            val numberOfMissingWords = numberOfWordsToDisplayed - answerOptions.size
-
-            answerOptions.addAll(getListOfLearnedWords().shuffled().takeLast(numberOfMissingWords))
-            answerOptions = answerOptions.shuffled().toMutableSet()
+                answerOptions.addAll(getListOfLearnedWords().shuffled().takeLast(numberOfMissingWords))
+                answerOptions = answerOptions.shuffled().toMutableSet()
+            }
+            currentQuestion = Question(answerOptions, wordToStudy)
         }
-        return Question(answerOptions, wordToStudy)
+        return currentQuestion
     }
 
-//    fun isAnswerCorrect(question: Question, userAnswer: Int?): Boolean {
-//        val correctAnswer = question.answerOptions.indexOf(question.wordToStudy) + 1
-//        val isAnswerCorrect = userAnswer == correctAnswer
-//        if (isAnswerCorrect) {
-//            question.wordToStudy.numberOfCorrectAnswers += 1
-//            saveDictionary()
-//        }
-//        return isAnswerCorrect
-//    }
-
     fun isAnswerCorrect(userAnswer: Int?): Boolean {
-        val correctAnswer = currentQuestion.answerOptions.indexOf(currentQuestion.wordToStudy) + 1
-        val isAnswerCorrect = userAnswer == correctAnswer
-        if (isAnswerCorrect) {
-            currentQuestion.wordToStudy.numberOfCorrectAnswers += 1
-            saveDictionary()
+        val isAnswerCorrect: Boolean
+        if (currentQuestion == null) isAnswerCorrect = false
+        else {
+            val correctAnswer = currentQuestion!!.answerOptions.indexOf(currentQuestion!!.wordToStudy) + 1
+            isAnswerCorrect = userAnswer == correctAnswer
+            if (isAnswerCorrect) {
+                currentQuestion!!.wordToStudy.numberOfCorrectAnswers += 1
+                saveDictionary()
+            }
         }
         return isAnswerCorrect
     }

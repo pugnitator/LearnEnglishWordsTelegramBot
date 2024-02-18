@@ -1,13 +1,12 @@
 package org.example.dictionary
 
 fun main() {
-    val trainer = LearningWordsTrainer(3, 4)
-//    val trainer = try {
-//        LearningWordsTrainer(3, 4)
-//    } catch (e: Exception) {
-//        println("Не удалось загрузить словарь.")
-//        return
-//    }
+    val trainer = try {
+        LearningWordsTrainer(3, 4)
+    } catch (e: Exception) {
+        println("Не удалось загрузить словарь.")
+        return
+    }
 
     do {
         print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
@@ -16,30 +15,30 @@ fun main() {
             0 -> continue
             1 -> {
                 do {
-                    if (trainer.getListOfUnlearnedWords().isEmpty()) {
-                        println("Вы выучили все слова.")
-                        break
-                    }
-
-//                    val question = trainer.currentQuestion
+                    val currentQuestion = trainer.getNextQuestion()
                     var userAnswer: Int?
 
-                    do {
-                        println("Введите номер правильного перевода для слова ${trainer.currentQuestion.wordToStudy.original}. Для выхода введите 0.")
-//                        question.answerOptions = question.answerOptions.shuffled().toMutableSet()
-                        trainer.currentQuestion.shuffledAnswerOptions()
-//                        question.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
-                        trainer.currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
-                        userAnswer = readln().toIntOrNull()
+                    if (currentQuestion == null) {
+                        println("Вы выучили все слова.")
+                        break
+                    } else {
+                        do {
+                            println(
+                                "Введите номер правильного перевода для слова ${currentQuestion.wordToStudy.original}. " +
+                                        "Для выхода введите 0."
+                            )
+                            currentQuestion.shuffledAnswerOptions()
+                            currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
+                            userAnswer = readln().toIntOrNull()
 
-                        if (userAnswer == 0) break
+                            if (userAnswer == 0) break
+                            val isAnswerCorrect = trainer.isAnswerCorrect(userAnswer)
 
-                        val isAnswerCorrect = trainer.isAnswerCorrect(userAnswer)
-                        if (isAnswerCorrect) println("Ответ правильный, отлично!")
-                        else println("Неверно, попробуйте ещё раз.")
+                            if (isAnswerCorrect) println("Ответ правильный, отлично!")
+                            else println("Неверно, попробуйте ещё раз.")
 
-                    } while (!isAnswerCorrect)
-
+                        } while (!isAnswerCorrect)
+                    }
                 } while (userAnswer != 0)
             }
 
