@@ -16,10 +16,15 @@ data class Statistics(
 )
 
 class Question(
-    var answerOptions: MutableSet<Word>,
+    inputAnswerOptions: MutableSet<Word>,
     val wordToStudy: Word,
 ) {
-    fun shuffledAnswerOptions(): MutableSet<Word> = answerOptions.shuffled().toMutableSet()
+    var answerOptions = inputAnswerOptions
+        private set
+
+    fun shuffledAnswerOptions() {
+        answerOptions = answerOptions.shuffled().toMutableSet()
+    }
 }
 
 class LearningWordsTrainer(
