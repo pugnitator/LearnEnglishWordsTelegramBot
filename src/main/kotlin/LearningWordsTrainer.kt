@@ -1,5 +1,3 @@
-package org.example.dictionary
-
 import java.io.File
 import java.lang.IndexOutOfBoundsException
 
