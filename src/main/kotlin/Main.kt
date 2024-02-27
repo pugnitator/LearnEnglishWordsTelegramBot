@@ -1,5 +1,3 @@
-package org.example.dictionary
-
 fun main() {
     val trainer = try {
         LearningWordsTrainer(3, 4)
