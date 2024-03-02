@@ -24,12 +24,11 @@ fun main(args: Array<String>) {
 
             when (messageFromChat?.lowercase()) {
                 "hello" -> telegramBot.sendMessage(chatId, "Hello!")
-                "/start" -> telegramBot.sendMenu(chatId)
+                BOT_COMMAND_START -> telegramBot.sendMenu(chatId)
             }
 
             when (buttonCallbackData) {
-                CD_LEARN_WORD -> {
-
+                CALLBACK_DATA_LEARN_WORD -> {
                     val currentQuestion = trainer.getNextQuestion()
 
                     if (currentQuestion == null) {
@@ -38,19 +37,21 @@ fun main(args: Array<String>) {
                     } else telegramBot.sendQuestion(chatId, currentQuestion)
                 }
 
-                CD_STATISTIC -> {
+                CALLBACK_DATA_STATISTIC -> {
                     val statistics = trainer.getStatisticsOfLearningWords()
                     val message = "Выучено ${statistics.numberOfLearnedWords} из ${statistics.numberOfWords} слов | " +
                             "${String.format("%.2f", statistics.percentageOfWordsLearned)}%"
                     telegramBot.sendMessage(chatId, message)
                 }
 
-                "stop_bot" -> TODO("Завершать работу бота")
+                "exit" -> TODO("Завершать работу бота")
             }
 
-//            if (buttonCallbackData!!.startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
-//
-//            }
+            if (buttonCallbackData?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
+                val answer = buttonCallbackData.substringAfter("_").toIntOrNull()
+                telegramBot.checkNextQuestionAnswer(trainer, chatId, answer)
+            }
+
         }
 
 
@@ -61,6 +62,7 @@ fun main(args: Array<String>) {
 
 fun getRegexValue(regexPattern: Regex, data: String): String? = regexPattern.find(data)?.groups?.get(1)?.value
 
-const val CD_LEARN_WORD = "learn_words_clicked"
-const val CD_STATISTIC = "statistic_clicked"
+const val BOT_COMMAND_START = "/start"
+const val CALLBACK_DATA_LEARN_WORD = "learn_words_clicked"
+const val CALLBACK_DATA_STATISTIC = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"

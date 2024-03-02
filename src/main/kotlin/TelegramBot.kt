@@ -71,13 +71,13 @@ class TelegramBot(
         val questionBody = """
             {
             	"chat_id": $chatId,
-                "text": "Выберите правильный перевод для слова "${currentQuestion!!.wordToStudy.original}"",
+                "text": "Выберите правильный перевод для слова \"${currentQuestion!!.wordToStudy.original}\"",
             	"reply_markup": {
             		"inline_keyboard": [
             			[
             				{
             					"text": "1. ${currentQuestion.answerOptions.elementAt(0).translation}",
-            					"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${currentQuestion.answerOptions.elementAt(0).translation}"
+            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}0"
             				}
             			],
             			[
@@ -103,7 +103,7 @@ class TelegramBot(
             					"text": "Выход",
             					"callback_data": "exit"
             				}
-            			]          
+            			]
             		]
             	}
             }
@@ -114,11 +114,11 @@ class TelegramBot(
             .POST(HttpRequest.BodyPublishers.ofString(questionBody))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-
         return response.body()
     }
 
-    fun checkNextQuestionAndSend(trainer: LearningWordsTrainer, chatId: String) {
-
+    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int?) {
+        if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
+        else sendMessage(chatId, "Неверно.")
     }
 }

@@ -1,7 +1,7 @@
-hello|привет|2
+hello|привет|3
 dog|собака|3
 cat|кошка|3
 pig|свинья|3
-water|вода|1
+water|вода|2
 rooster|петух|3
 victim|жертва|3
