@@ -23,7 +23,6 @@ fun main(args: Array<String>) {
         if ((chatId != null && messageFromChat != null) || (chatId != null && buttonCallbackData != null)) {
 
             when (messageFromChat?.lowercase()) {
-                "hello" -> telegramBot.sendMessage(chatId, "Hello!")
                 BOT_COMMAND_START -> telegramBot.sendMenu(chatId)
             }
 
@@ -46,7 +45,7 @@ fun main(args: Array<String>) {
                     telegramBot.sendMessage(chatId, message)
                 }
 
-                "exit" -> TODO("Завершать работу бота")
+                CALLBACK_DATA_TO_MENU -> telegramBot.sendMenu(chatId)
             }
 
             if (buttonCallbackData?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
@@ -61,8 +60,12 @@ fun main(args: Array<String>) {
 
 fun getRegexValue(regexPattern: Regex, data: String): String? = regexPattern.find(data)?.groups?.get(1)?.value
 
+
 const val BOT_COMMAND_START = "/start"
+
 const val CALLBACK_DATA_LEARN_WORD = "learn_words_clicked"
 const val CALLBACK_DATA_STATISTIC = "statistic_clicked"
+const val CALLBACK_DATA_TO_MENU = "to_menu_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
+
 const val ALL_THE_WORDS_ARE_LEARNED = "Вы выучили все слова"

@@ -38,18 +38,12 @@ class TelegramBot(
             			[
             				{
             					"text": "Учить слова",
-            					"callback_data": "learn_words_clicked"
-            				}
-            			],
-            			[
-            				{
-            					"text": "Статистика",
-            					"callback_data": "statistic_clicked"
+            					"callback_data": "$CALLBACK_DATA_LEARN_WORD"
             				},
-            				{
-            					"text": "Выход",
-            					"callback_data": "stop_bot"
-            				}
+                            {
+                                "text": "Статистика",
+                                "callback_data": "$CALLBACK_DATA_STATISTIC"
+                            }
             			]
             		]
             	}
@@ -100,8 +94,8 @@ class TelegramBot(
             			],
             			[
             				{
-            					"text": "Выход",
-            					"callback_data": "exit"
+            					"text": "В меню",
+            					"callback_data": "$CALLBACK_DATA_TO_MENU"
             				}
             			]
             		]
@@ -119,7 +113,7 @@ class TelegramBot(
 
     fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int?) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
-        else sendMessage(chatId, "Неверно.Правильный ответ ${trainer.currentQuestion?.wordToStudy?.original}")
+        else sendMessage(chatId, "Неверно.Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation}")
 
         if (trainer.getNextQuestion() == null) sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
 
