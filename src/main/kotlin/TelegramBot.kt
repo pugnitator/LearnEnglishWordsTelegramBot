@@ -75,7 +75,7 @@ class TelegramBot(
             	"reply_markup": {
             		"inline_keyboard": [
             			[
-            				{
+            				{                           
             					"text": "1. ${currentQuestion.answerOptions.elementAt(0).translation}",
             					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}0"
             				}
@@ -83,19 +83,19 @@ class TelegramBot(
             			[
             				{
             					"text": "2. ${currentQuestion.answerOptions.elementAt(1).translation}",
-            					"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${currentQuestion.answerOptions.elementAt(1).translation}"
+            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}1"
             				}
             			],
             			[
             				{
             					"text": "3. ${currentQuestion.answerOptions.elementAt(2).translation}",
-            					"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${currentQuestion.answerOptions.elementAt(2).translation}"
+            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}2"
             				}
             			],
             			[
             				{
             					"text": "4. ${currentQuestion.answerOptions.elementAt(3).translation}",
-            					"callback_data": "$CALLBACK_DATA_ANSWER_PREFIX${currentQuestion.answerOptions.elementAt(3).translation}"
+            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}3"
             				}
             			],
             			[
@@ -119,6 +119,10 @@ class TelegramBot(
 
     fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int?) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
-        else sendMessage(chatId, "Неверно.")
+        else sendMessage(chatId, "Неверно.Правильный ответ ${trainer.currentQuestion?.wordToStudy?.original}")
+
+        if (trainer.getNextQuestion() == null) sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
+
+        sendQuestion(chatId, trainer.getNextQuestion())
     }
 }

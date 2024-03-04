@@ -30,9 +30,11 @@ fun main(args: Array<String>) {
             when (buttonCallbackData) {
                 CALLBACK_DATA_LEARN_WORD -> {
                     val currentQuestion = trainer.getNextQuestion()
+                    println(currentQuestion?.wordToStudy ?: 0)
+                    currentQuestion?.answerOptions?.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}")}
 
                     if (currentQuestion == null) {
-                        telegramBot.sendMessage(chatId, "Вы выучили все слова.")
+                        telegramBot.sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
                         telegramBot.sendMenu(chatId)
                     } else telegramBot.sendQuestion(chatId, currentQuestion)
                 }
@@ -50,13 +52,10 @@ fun main(args: Array<String>) {
             if (buttonCallbackData?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
                 val answer = buttonCallbackData.substringAfter("_").toIntOrNull()
                 telegramBot.checkNextQuestionAnswer(trainer, chatId, answer)
+
             }
-
         }
-
-
         updateId = (lastUpdateId ?: continue) + 1
-
     }
 }
 
@@ -66,3 +65,4 @@ const val BOT_COMMAND_START = "/start"
 const val CALLBACK_DATA_LEARN_WORD = "learn_words_clicked"
 const val CALLBACK_DATA_STATISTIC = "statistic_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
+const val ALL_THE_WORDS_ARE_LEARNED = "Вы выучили все слова"
