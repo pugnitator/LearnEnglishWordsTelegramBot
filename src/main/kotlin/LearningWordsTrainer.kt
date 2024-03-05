@@ -31,7 +31,8 @@ class LearningWordsTrainer(
     private val wordsFileName: String = "words.txt",
 ) {
     private val dictionary = loadDictionary()
-    private var currentQuestion: Question? = null
+    var currentQuestion: Question? = null
+        private set
 
 
     private fun loadDictionary(): Set<Word> {
@@ -80,7 +81,7 @@ class LearningWordsTrainer(
         val isAnswerCorrect: Boolean
         if (currentQuestion == null) isAnswerCorrect = false
         else {
-            val correctAnswer = currentQuestion!!.answerOptions.indexOf(currentQuestion!!.wordToStudy) + 1
+            val correctAnswer = currentQuestion!!.answerOptions.indexOf(currentQuestion!!.wordToStudy)
             isAnswerCorrect = userAnswer == correctAnswer
             if (isAnswerCorrect) {
                 currentQuestion!!.wordToStudy.numberOfCorrectAnswers += 1

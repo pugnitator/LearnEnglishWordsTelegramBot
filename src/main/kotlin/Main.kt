@@ -25,7 +25,7 @@ fun main() {
                                 "Введите номер правильного перевода для слова ${currentQuestion.wordToStudy.original}. " +
                                         "Для выхода введите 0."
                             )
-                            currentQuestion.shuffledAnswerOptions()
+//                            currentQuestion.shuffledAnswerOptions()
                             currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                             userAnswer = readln().toIntOrNull()
 
