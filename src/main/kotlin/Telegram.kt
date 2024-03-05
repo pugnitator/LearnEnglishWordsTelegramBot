@@ -11,32 +11,21 @@ fun main(args: Array<String>) {
     val trainer = LearningWordsTrainer()
 
     while (true) {
-        Thread.sleep(3000)
+        Thread.sleep(2000)
         val botUpdates = telegramBot.getUpdates(updateId)
         println(botUpdates)
 
-        val lastUpdateId: Int? = getRegexValue(updateIdRegex, botUpdates)?.toIntOrNull()
-        val chatId: String? = getRegexValue(chatIdRegex, botUpdates)
+        val lastUpdateId: Int = getRegexValue(updateIdRegex, botUpdates)?.toIntOrNull()?: continue
+        val chatId: String = getRegexValue(chatIdRegex, botUpdates) ?: continue
         val messageFromChat: String? = getRegexValue(messageRegex, botUpdates)
         val buttonCallbackData: String? = getRegexValue(buttonCallbackDataRegex, botUpdates)
 
-        if ((chatId != null && messageFromChat != null) || (chatId != null && buttonCallbackData != null)) {
+        if (messageFromChat != null && messageFromChat.lowercase() == BOT_COMMAND_START) telegramBot.sendMenu(chatId)
 
-            when (messageFromChat?.lowercase()) {
-                BOT_COMMAND_START -> telegramBot.sendMenu(chatId)
-            }
+        if (buttonCallbackData != null) {
 
             when (buttonCallbackData) {
-                CALLBACK_DATA_LEARN_WORD -> {
-                    val currentQuestion = trainer.getNextQuestion()
-                    println(currentQuestion?.wordToStudy ?: 0)
-                    currentQuestion?.answerOptions?.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}")}
-
-                    if (currentQuestion == null) {
-                        telegramBot.sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
-                        telegramBot.sendMenu(chatId)
-                    } else telegramBot.sendQuestion(chatId, currentQuestion)
-                }
+                CALLBACK_DATA_LEARN_WORD -> telegramBot.getNextQuestion(trainer, chatId)
 
                 CALLBACK_DATA_STATISTIC -> {
                     val statistics = trainer.getStatisticsOfLearningWords()
@@ -48,13 +37,13 @@ fun main(args: Array<String>) {
                 CALLBACK_DATA_TO_MENU -> telegramBot.sendMenu(chatId)
             }
 
-            if (buttonCallbackData?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
-                val answer = buttonCallbackData.substringAfter("_").toIntOrNull()
+            if (buttonCallbackData.startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
+                val answer = buttonCallbackData.substringAfter("_").toIntOrNull()?: continue
                 telegramBot.checkNextQuestionAnswer(trainer, chatId, answer)
-
             }
         }
-        updateId = (lastUpdateId ?: continue) + 1
+
+        updateId = lastUpdateId + 1
     }
 }
 

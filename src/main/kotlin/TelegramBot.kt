@@ -8,10 +8,11 @@ import java.nio.charset.StandardCharsets
 class TelegramBot(
     private val botToken: String,
 ) {
+    private val botURL: String = "https://api.telegram.org/bot"
     private val client: HttpClient = HttpClient.newBuilder().build()
 
     fun getUpdates(updatesId: Int): String {
-        val urlGetUpdates = "https://api.telegram.org/bot$botToken/getUpdates?offset=$updatesId"
+        val urlGetUpdates = "$botURL$botToken/getUpdates?offset=$updatesId"
         val request = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
 
@@ -20,15 +21,15 @@ class TelegramBot(
 
     fun sendMessage(chatId: String, text: String): String {
         val encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8)
-        val urlSendMessage = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
+        val urlSendMessage = "$botURL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
 
         return response.body()
     }
 
-    fun sendMenu(chatId: String): String? {
-        val urlSendMessage = "https://api.telegram.org/bot$botToken/sendMessage"
+    fun sendMenu(chatId: String): String {
+        val urlSendMessage = "$botURL$botToken/sendMessage"
         val menuBody = """
             {
             	"chat_id": $chatId,
@@ -59,39 +60,26 @@ class TelegramBot(
         return response.body()
     }
 
-    fun sendQuestion(chatId: String, currentQuestion: Question?): String {
-        val urlSendMessage = "https://api.telegram.org/bot$botToken/sendMessage"
+    private fun sendQuestion(chatId: String, currentQuestion: Question): String {
+        val urlSendMessage = "$botURL$botToken/sendMessage"
+        val answerOptionBody = currentQuestion.answerOptions.mapIndexed { index, word ->
+            """
+            [
+                {
+                    "text": "${index + 1}. ${word.translation}",
+                    "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}$index"
+                }
+            ]   
+            """.trimIndent()
+        }.joinToString(",")
 
         val questionBody = """
             {
             	"chat_id": $chatId,
-                "text": "Выберите правильный перевод для слова \"${currentQuestion!!.wordToStudy.original}\"",
+                "text": "Выберите правильный перевод для слова \"${currentQuestion.wordToStudy.original}\"",
             	"reply_markup": {
             		"inline_keyboard": [
-            			[
-            				{                           
-            					"text": "1. ${currentQuestion.answerOptions.elementAt(0).translation}",
-            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}0"
-            				}
-            			],
-            			[
-            				{
-            					"text": "2. ${currentQuestion.answerOptions.elementAt(1).translation}",
-            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}1"
-            				}
-            			],
-            			[
-            				{
-            					"text": "3. ${currentQuestion.answerOptions.elementAt(2).translation}",
-            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}2"
-            				}
-            			],
-            			[
-            				{
-            					"text": "4. ${currentQuestion.answerOptions.elementAt(3).translation}",
-            					"callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}3"
-            				}
-            			],
+                        $answerOptionBody,
             			[
             				{
             					"text": "В меню",
@@ -111,12 +99,18 @@ class TelegramBot(
         return response.body()
     }
 
-    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int?) {
+    fun getNextQuestion(trainer: LearningWordsTrainer, chatId: String){
+        val currentQuestion = trainer.getNextQuestion()
+        if (currentQuestion == null) {
+            sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
+            sendMenu(chatId)
+        } else sendQuestion(chatId, currentQuestion)
+    }
+
+    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
-        else sendMessage(chatId, "Неверно.Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation}")
+        else sendMessage(chatId, "Неверно. Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation?: "не обнаружен"}")
 
-        if (trainer.getNextQuestion() == null) sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
-
-        sendQuestion(chatId, trainer.getNextQuestion())
+        getNextQuestion(trainer, chatId)
     }
 }
