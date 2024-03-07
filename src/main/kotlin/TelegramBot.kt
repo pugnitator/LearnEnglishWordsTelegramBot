@@ -11,7 +11,7 @@ class TelegramBot(
     private val botURL: String = "https://api.telegram.org/bot"
     private val client: HttpClient = HttpClient.newBuilder().build()
 
-    fun getUpdates(updatesId: Int): String {
+    fun getUpdates(updatesId: Long): String {
         val urlGetUpdates = "$botURL$botToken/getUpdates?offset=$updatesId"
         val request = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
@@ -19,7 +19,7 @@ class TelegramBot(
         return response.body()
     }
 
-    fun sendMessage(chatId: String, text: String): String {
+    fun sendMessage(chatId: Long, text: String): String {
         val encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8)
         val urlSendMessage = "$botURL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
@@ -28,7 +28,7 @@ class TelegramBot(
         return response.body()
     }
 
-    fun sendMenu(chatId: String): String {
+    fun sendMenu(chatId: Long): String {
         val urlSendMessage = "$botURL$botToken/sendMessage"
         val menuBody = """
             {
@@ -60,7 +60,7 @@ class TelegramBot(
         return response.body()
     }
 
-    private fun sendQuestion(chatId: String, currentQuestion: Question): String {
+    private fun sendQuestion(chatId: Long, currentQuestion: Question): String {
         val urlSendMessage = "$botURL$botToken/sendMessage"
         val answerOptionBody = currentQuestion.answerOptions.mapIndexed { index, word ->
             """
@@ -99,7 +99,7 @@ class TelegramBot(
         return response.body()
     }
 
-    fun getNextQuestion(trainer: LearningWordsTrainer, chatId: String){
+    fun getNextQuestion(trainer: LearningWordsTrainer, chatId: Long){
         val currentQuestion = trainer.getNextQuestion()
         if (currentQuestion == null) {
             sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
@@ -107,7 +107,7 @@ class TelegramBot(
         } else sendQuestion(chatId, currentQuestion)
     }
 
-    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: String, answer: Int) {
+    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: Long, answer: Int) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
         else sendMessage(chatId, "Неверно. Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation?: "не обнаружен"}")
 

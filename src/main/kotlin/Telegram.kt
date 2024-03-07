@@ -1,24 +1,30 @@
+import kotlinx.serialization.json.Json
+
 fun main(args: Array<String>) {
     val botToken = args[0]
     val telegramBot = TelegramBot(botToken)
-    var updateId = 0
-
-    val updateIdRegex: Regex = "\"update_id\":(.+[0-9]),".toRegex()
-    val chatIdRegex: Regex = "\"chat\":\\{\"id\":(.+?),".toRegex()
-    val messageRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-    val buttonCallbackDataRegex: Regex = "\"data\":\"(.+?)\"}".toRegex()
-
     val trainer = LearningWordsTrainer()
+    var nextUpdateId = 0L
+
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     while (true) {
         Thread.sleep(2000)
-        val botUpdates = telegramBot.getUpdates(updateId)
-        println(botUpdates)
+        val responseString = telegramBot.getUpdates(nextUpdateId)
+        println(responseString)
 
-        val lastUpdateId: Int = getRegexValue(updateIdRegex, botUpdates)?.toIntOrNull()?: continue
-        val chatId: String = getRegexValue(chatIdRegex, botUpdates) ?: continue
-        val messageFromChat: String? = getRegexValue(messageRegex, botUpdates)
-        val buttonCallbackData: String? = getRegexValue(buttonCallbackDataRegex, botUpdates)
+        val response: Response = json.decodeFromString<Response>(responseString)
+        val updates = response.result
+        val lastUpdate = updates.lastOrNull() ?: continue
+
+        val lastUpdateId : Long = lastUpdate.updateId
+        nextUpdateId = lastUpdateId + 1
+
+        val chatId: Long = lastUpdate.message?.chat?.id ?: lastUpdate.callbackQuery?.message?.chat?.id ?: continue
+        val messageFromChat: String? = lastUpdate.message?.text
+        val buttonCallbackData: String? = lastUpdate.callbackQuery?.data
 
         if (messageFromChat != null && messageFromChat.lowercase() == BOT_COMMAND_START) telegramBot.sendMenu(chatId)
 
@@ -38,17 +44,12 @@ fun main(args: Array<String>) {
             }
 
             if (buttonCallbackData.startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
-                val answer = buttonCallbackData.substringAfter("_").toIntOrNull()?: continue
+                val answer = buttonCallbackData.substringAfter("_").toIntOrNull() ?: continue
                 telegramBot.checkNextQuestionAnswer(trainer, chatId, answer)
             }
         }
-
-        updateId = lastUpdateId + 1
     }
 }
-
-fun getRegexValue(regexPattern: Regex, data: String): String? = regexPattern.find(data)?.groups?.get(1)?.value
-
 
 const val BOT_COMMAND_START = "/start"
 
