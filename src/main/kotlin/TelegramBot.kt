@@ -19,7 +19,44 @@ class TelegramBot(
         return response.body()
     }
 
-    fun sendMessage(chatId: Long, text: String): String {
+    fun handleUpdate(updatesForEachChatId: Map<Long, List<Update>>, trainer: LearningWordsTrainer) {
+        val lastUpdate = updatesForEachChatId.values.last().last()
+
+        println()
+        println(updatesForEachChatId.keys)
+
+        val chatId = lastUpdate.chatId ?: return
+
+        println(chatId)
+        println()
+
+        val messageFromChat: String? = lastUpdate.message?.text
+        val buttonCallbackData: String? = lastUpdate.callbackQuery?.data
+
+        if (messageFromChat != null && messageFromChat.lowercase() == BOT_COMMAND_START) sendMenu(chatId)
+
+        if (buttonCallbackData != null) {
+            when (buttonCallbackData) {
+                CALLBACK_DATA_LEARN_WORD -> getNextQuestion(trainer, chatId)
+
+                CALLBACK_DATA_STATISTIC -> {
+                    val statistics = trainer.getStatisticsOfLearningWords()
+                    val message = "Выучено ${statistics.numberOfLearnedWords} из ${statistics.numberOfWords} слов | " +
+                            "${String.format("%.2f", statistics.percentageOfWordsLearned)}%"
+                    sendMessage(chatId, message)
+                }
+
+                CALLBACK_DATA_TO_MENU -> sendMenu(chatId)
+            }
+
+            if (buttonCallbackData.startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
+                val answer = buttonCallbackData.substringAfter("_").toIntOrNull() ?: return
+                checkNextQuestionAnswer(trainer, chatId, answer)
+            }
+        }
+    }
+
+    private fun sendMessage(chatId: Long, text: String): String {
         val encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8)
         val urlSendMessage = "$botURL$botToken/sendMessage?chat_id=$chatId&text=$encodedText"
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
@@ -28,7 +65,7 @@ class TelegramBot(
         return response.body()
     }
 
-    fun sendMenu(chatId: Long): String {
+    private fun sendMenu(chatId: Long): String {
         val urlSendMessage = "$botURL$botToken/sendMessage"
         val menuBody = """
             {
@@ -99,7 +136,7 @@ class TelegramBot(
         return response.body()
     }
 
-    fun getNextQuestion(trainer: LearningWordsTrainer, chatId: Long){
+    private fun getNextQuestion(trainer: LearningWordsTrainer, chatId: Long) {
         val currentQuestion = trainer.getNextQuestion()
         if (currentQuestion == null) {
             sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
@@ -107,9 +144,12 @@ class TelegramBot(
         } else sendQuestion(chatId, currentQuestion)
     }
 
-    fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: Long, answer: Int) {
+    private fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: Long, answer: Int) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
-        else sendMessage(chatId, "Неверно. Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation?: "не обнаружен"}")
+        else sendMessage(
+            chatId,
+            "Неверно. Правильный ответ ${trainer.currentQuestion?.wordToStudy?.translation ?: "не обнаружен"}"
+        )
 
         getNextQuestion(trainer, chatId)
     }

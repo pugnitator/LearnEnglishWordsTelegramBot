@@ -4,50 +4,24 @@ fun main(args: Array<String>) {
     val botToken = args[0]
     val telegramBot = TelegramBot(botToken)
     val trainer = LearningWordsTrainer()
-    var nextUpdateId = 0L
+    var lastUpdateId = 0L
 
-    val json = Json {
-        ignoreUnknownKeys = true
-    }
+    val json = Json {ignoreUnknownKeys = true}
 
     while (true) {
         Thread.sleep(2000)
-        val responseString = telegramBot.getUpdates(nextUpdateId)
+        val responseString = telegramBot.getUpdates(lastUpdateId)
         println(responseString)
 
         val response: Response = json.decodeFromString<Response>(responseString)
         val updates = response.result
-        val lastUpdate = updates.lastOrNull() ?: continue
+        if (updates.isEmpty()) continue
+        val sortedUpdates = updates.sortedBy { it.updateId }
+        val updatesForEachChatId: Map<Long, List<Update>> = sortedUpdates.filter { it.chatId != null }.groupBy { it.chatId!! }
+        telegramBot.handleUpdate(updatesForEachChatId, trainer)
 
-        val lastUpdateId : Long = lastUpdate.updateId
-        nextUpdateId = lastUpdateId + 1
+        lastUpdateId = sortedUpdates.last().updateId + 1
 
-        val chatId: Long = lastUpdate.message?.chat?.id ?: lastUpdate.callbackQuery?.message?.chat?.id ?: continue
-        val messageFromChat: String? = lastUpdate.message?.text
-        val buttonCallbackData: String? = lastUpdate.callbackQuery?.data
-
-        if (messageFromChat != null && messageFromChat.lowercase() == BOT_COMMAND_START) telegramBot.sendMenu(chatId)
-
-        if (buttonCallbackData != null) {
-
-            when (buttonCallbackData) {
-                CALLBACK_DATA_LEARN_WORD -> telegramBot.getNextQuestion(trainer, chatId)
-
-                CALLBACK_DATA_STATISTIC -> {
-                    val statistics = trainer.getStatisticsOfLearningWords()
-                    val message = "Выучено ${statistics.numberOfLearnedWords} из ${statistics.numberOfWords} слов | " +
-                            "${String.format("%.2f", statistics.percentageOfWordsLearned)}%"
-                    telegramBot.sendMessage(chatId, message)
-                }
-
-                CALLBACK_DATA_TO_MENU -> telegramBot.sendMenu(chatId)
-            }
-
-            if (buttonCallbackData.startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
-                val answer = buttonCallbackData.substringAfter("_").toIntOrNull() ?: continue
-                telegramBot.checkNextQuestionAnswer(trainer, chatId, answer)
-            }
-        }
     }
 }
 

@@ -1,11 +1,10 @@
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 @Serializable
 data class Response(
     @SerialName("result")
-    val result: List<Update?>,
+    val result: List<Update>,
 )
 
 @Serializable
@@ -16,6 +15,7 @@ data class Update(
     val message: Message? = null,
     @SerialName("callback_query")
     val callbackQuery: CallbackQuery? = null,
+    val chatId: Long? = message?.chat?.id ?: callbackQuery?.message?.chat?.id
 )
 
 @Serializable
