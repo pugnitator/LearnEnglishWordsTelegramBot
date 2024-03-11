@@ -19,16 +19,12 @@ class TelegramBot(
         return response.body()
     }
 
-    fun handleUpdate(updatesForEachChatId: Map<Long, List<Update>>, trainer: LearningWordsTrainer) {
+    fun handleUpdate(updatesForEachChatId: Map<Long, List<Update>>, trainers: HashMap<Long, LearnWordsTrainer>) {
         val lastUpdate = updatesForEachChatId.values.last().last()
-
-        println()
-        println(updatesForEachChatId.keys)
-
         val chatId = lastUpdate.chatId ?: return
-
-        println(chatId)
-        println()
+        val trainer = trainers.getOrPut(chatId) {
+            LearnWordsTrainer(3, 4, "$chatId.txt")
+        }
 
         val messageFromChat: String? = lastUpdate.message?.text
         val buttonCallbackData: String? = lastUpdate.callbackQuery?.data
@@ -44,6 +40,11 @@ class TelegramBot(
                     val message = "Выучено ${statistics.numberOfLearnedWords} из ${statistics.numberOfWords} слов | " +
                             "${String.format("%.2f", statistics.percentageOfWordsLearned)}%"
                     sendMessage(chatId, message)
+                }
+
+                CALLBACK_DATA_RESET_STATISTIC -> {
+                    trainer.resetStatisticsOfLearningWords()
+                    sendMessage(chatId, "Прогресс сброшен.")
                 }
 
                 CALLBACK_DATA_TO_MENU -> sendMenu(chatId)
@@ -77,11 +78,17 @@ class TelegramBot(
             				{
             					"text": "Учить слова",
             					"callback_data": "$CALLBACK_DATA_LEARN_WORD"
-            				},
+            				}
+                        ],
+                        [
                             {
                                 "text": "Статистика",
                                 "callback_data": "$CALLBACK_DATA_STATISTIC"
-                            }
+                            },
+                            {
+                                "text": "Сбросить прогресс",
+                                "callback_data": "$CALLBACK_DATA_RESET_STATISTIC"
+                            }   
             			]
             		]
             	}
@@ -136,7 +143,7 @@ class TelegramBot(
         return response.body()
     }
 
-    private fun getNextQuestion(trainer: LearningWordsTrainer, chatId: Long) {
+    private fun getNextQuestion(trainer: LearnWordsTrainer, chatId: Long) {
         val currentQuestion = trainer.getNextQuestion()
         if (currentQuestion == null) {
             sendMessage(chatId, ALL_THE_WORDS_ARE_LEARNED)
@@ -144,7 +151,7 @@ class TelegramBot(
         } else sendQuestion(chatId, currentQuestion)
     }
 
-    private fun checkNextQuestionAnswer(trainer: LearningWordsTrainer, chatId: Long, answer: Int) {
+    private fun checkNextQuestionAnswer(trainer: LearnWordsTrainer, chatId: Long, answer: Int) {
         if (trainer.isAnswerCorrect(answer)) sendMessage(chatId, "Правильно!")
         else sendMessage(
             chatId,

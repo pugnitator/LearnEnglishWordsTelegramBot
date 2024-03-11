@@ -1,57 +1,31 @@
-fun main() {
-    val trainer = try {
-        LearningWordsTrainer(3, 4)
-    } catch (e: Exception) {
-        println("Не удалось загрузить словарь.")
-        return
+import kotlinx.serialization.json.Json
+
+fun main(args: Array<String>) {
+    val botToken = args[0]
+    val telegramBot = TelegramBot(botToken)
+
+    // список ЧатИд - Трейнер
+    val trainers = HashMap<Long, LearnWordsTrainer>()
+//    val trainer = LearnWordsTrainer()
+    var lastUpdateId = 0L
+
+    val json = Json { ignoreUnknownKeys = true }
+
+    while (true) {
+        Thread.sleep(2000)
+        val responseString = telegramBot.getUpdates(lastUpdateId)
+        println(responseString)
+
+        val response: Response = json.decodeFromString<Response>(responseString)
+        val updates = response.result
+        if (updates.isEmpty()) continue
+
+        val sortedUpdates = updates.sortedBy { it.updateId }
+
+        val updatesForEachChatId: Map<Long, List<Update>> =
+            sortedUpdates.filter { it.chatId != null }.groupBy { it.chatId!! }
+        telegramBot.handleUpdate(updatesForEachChatId, trainers)
+
+        lastUpdateId = sortedUpdates.last().updateId + 1
     }
-
-    do {
-        print("Меню: 1 - Учить слова, 2 - Статистика, 0 - Выход. \nВведите номер нужной операции: ")
-        val inputValue = readln().toIntOrNull()
-        when (inputValue) {
-            0 -> continue
-            1 -> {
-                do {
-                    val currentQuestion = trainer.getNextQuestion()
-                    var userAnswer: Int?
-
-                    if (currentQuestion == null) {
-                        println("Вы выучили все слова.")
-                        break
-                    } else {
-                        do {
-                            println(
-                                "Введите номер правильного перевода для слова ${currentQuestion.wordToStudy.original}. " +
-                                        "Для выхода введите 0."
-                            )
-//                            currentQuestion.shuffledAnswerOptions()
-                            currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
-                            userAnswer = readln().toIntOrNull()
-
-                            if (userAnswer == 0) break
-                            val isAnswerCorrect = trainer.isAnswerCorrect(userAnswer)
-
-                            if (isAnswerCorrect) println("Ответ правильный, отлично!")
-                            else println("Неверно, попробуйте ещё раз.")
-
-                        } while (!isAnswerCorrect)
-                    }
-                } while (userAnswer != 0)
-            }
-
-            2 -> {
-                val statistics = trainer.getStatisticsOfLearningWords()
-                println(
-                    "Выучено ${statistics.numberOfLearnedWords} из ${statistics.numberOfWords} слов | " +
-                            "${String.format("%.2f", statistics.percentageOfWordsLearned)}%"
-                )
-            }
-
-            else -> {
-                println("Введено неизвестное значение, попробуйте снова.\n")
-                continue
-            }
-        }
-    } while (inputValue != 0)
 }
