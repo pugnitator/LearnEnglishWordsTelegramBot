@@ -3,6 +3,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Response(
+    @SerialName("ok")
+    val ok: Boolean,
     @SerialName("result")
     val result: List<Update>,
 )
