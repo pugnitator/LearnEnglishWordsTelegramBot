@@ -41,3 +41,11 @@ data class Chat(
     @SerialName("id")
     val id: Long,
 )
+
+@Serializable
+data class InlineKeyboardButton(
+    @SerialName("text")
+    val text: String,
+    @SerialName("callback_data")
+    val callbackData: String,
+)
