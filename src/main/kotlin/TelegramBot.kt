@@ -36,26 +36,12 @@ class TelegramBot(
     fun sendMenu(chatId: Long): String {
         val urlSendMessage = "$botURL$botToken/sendMessage"
 
-        val learnWordButton = json.encodeToJsonElement(InlineKeyboardButton("Учить слова", CALLBACK_DATA_LEARN_WORD))
-        val statisticsButton = json.encodeToJsonElement(InlineKeyboardButton("Статистика", CALLBACK_DATA_STATISTIC))
-        val resetStatisticButton = json.encodeToJsonElement(InlineKeyboardButton("Сбросить прогресс", CALLBACK_DATA_RESET_STATISTIC))
-        val menuBody = """
-            {
-            	"chat_id": $chatId,
-            	"text": "Меню",
-            	"reply_markup": {
-            		"inline_keyboard": [
-            			[
-                            $learnWordButton
-                        ],
-                        [
-                            $statisticsButton,                          
-                            $resetStatisticButton     
-            			]
-            		]
-            	}
-            }
-        """.trimIndent()
+        val learnWordButton = InlineKeyboardButton(BUTTON_LEARN_WORD, CALLBACK_DATA_LEARN_WORD)
+        val statisticsButton = InlineKeyboardButton(BUTTON_STATISTIC, CALLBACK_DATA_STATISTIC)
+        val resetStatisticButton = InlineKeyboardButton(BUTTON_RESET_STATISTIC, CALLBACK_DATA_RESET_STATISTIC)
+
+        val replyMarkup = ReplyMarkup(listOf(listOf(learnWordButton), listOf(statisticsButton, resetStatisticButton)))
+        val menuBody = json.encodeToJsonElement(SendMessageRequest(chatId, "Меню", replyMarkup)).toString()
 
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
             .header("Content-type", "application/json")
@@ -68,31 +54,21 @@ class TelegramBot(
 
     private fun sendQuestion(chatId: Long, currentQuestion: Question): String {
         val urlSendMessage = "$botURL$botToken/sendMessage"
-        val toMenuButton = json.encodeToJsonElement(InlineKeyboardButton("В меню", CALLBACK_DATA_TO_MENU))
-        val answerOptionBody = currentQuestion.answerOptions.mapIndexed { index, word ->
-            """
-            [         
-                ${json.encodeToJsonElement(
-                InlineKeyboardButton("${index + 1}. ${word.translation}", "${CALLBACK_DATA_ANSWER_PREFIX}$index")
-                )} 
-            ]   
-            """.trimIndent()
-        }.joinToString(",")
 
-        val questionBody = """
-            {
-            	"chat_id": $chatId,
-                "text": "Выберите правильный перевод для слова \"${currentQuestion.wordToStudy.original}\"",
-            	"reply_markup": {
-            		"inline_keyboard": [
-                        $answerOptionBody,
-            			[
-            				$toMenuButton
-            			]
-            		]
-            	}
-            }
-        """.trimIndent()
+        val toMenuButton = InlineKeyboardButton(BUTTON_TO_MENU, CALLBACK_DATA_TO_MENU)
+        val answerOptionBody: List<InlineKeyboardButton> = currentQuestion.answerOptions.mapIndexed { index, word ->
+            InlineKeyboardButton("${index + 1}. ${word.translation}", "${CALLBACK_DATA_ANSWER_PREFIX}$index")
+        }.toList()
+        
+        answerOptionBody.forEach { println(it) }
+        println()
+
+        val replyMarkup = ReplyMarkup(listOf(answerOptionBody, listOf(toMenuButton)))
+        val questionBody = json.encodeToJsonElement(SendMessageRequest(
+            chatId,
+            "Выберите правильный перевод для слова \"${currentQuestion.wordToStudy.original}\"",
+            replyMarkup
+        )).toString()
 
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
             .header("Content-type", "application/json")

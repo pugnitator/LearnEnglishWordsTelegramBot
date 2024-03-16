@@ -1,4 +1,3 @@
-
 fun main(args: Array<String>) {
     val botToken = args[0]
     val telegramBot = TelegramBot(botToken)
