@@ -1,3 +1,7 @@
+package telegramBot
+
+import trainer.LearnWordsTrainer
+import trainer.Question
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import java.net.URI
@@ -56,19 +60,20 @@ class TelegramBot(
         val urlSendMessage = "$botURL$botToken/sendMessage"
 
         val toMenuButton = InlineKeyboardButton(BUTTON_TO_MENU, CALLBACK_DATA_TO_MENU)
-        val answerOptionBody: List<InlineKeyboardButton> = currentQuestion.answerOptions.mapIndexed { index, word ->
-            InlineKeyboardButton("${index + 1}. ${word.translation}", "${CALLBACK_DATA_ANSWER_PREFIX}$index")
-        }.toList()
-        
-        answerOptionBody.forEach { println(it) }
-        println()
+        val answerOptionBody = currentQuestion.answerOptions.mapIndexed { index, word ->
+            listOf(InlineKeyboardButton("${index + 1}. ${word.translation}", "$CALLBACK_DATA_ANSWER_PREFIX$index"))
+        }.toMutableList()
 
-        val replyMarkup = ReplyMarkup(listOf(answerOptionBody, listOf(toMenuButton)))
-        val questionBody = json.encodeToJsonElement(SendMessageRequest(
-            chatId,
-            "Выберите правильный перевод для слова \"${currentQuestion.wordToStudy.original}\"",
-            replyMarkup
-        )).toString()
+        answerOptionBody.add(listOf(toMenuButton))
+
+        val replyMarkup = ReplyMarkup(answerOptionBody)
+        val questionBody = json.encodeToJsonElement(
+            SendMessageRequest(
+                chatId,
+                "Выберите правильный перевод для слова \"${currentQuestion.wordToStudy.original}\"",
+                replyMarkup
+            )
+        ).toString()
 
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
             .header("Content-type", "application/json")

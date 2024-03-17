@@ -1,3 +1,7 @@
+package consol
+
+import trainer.LearnWordsTrainer
+
 fun main(){
     val trainer = try {
         LearnWordsTrainer(3, 4)

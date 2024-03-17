@@ -1,25 +1,5 @@
+package trainer
 import java.io.File
-import java.lang.IndexOutOfBoundsException
-
-data class Word(
-    val original: String,
-    val translation: String,
-    var numberOfCorrectAnswers: Int = 0
-)
-
-data class Statistics(
-    val numberOfWords: Int,
-    val numberOfLearnedWords: Int,
-    val percentageOfWordsLearned: Float,
-)
-
-class Question(
-    inputAnswerOptions: MutableSet<Word>,
-    val wordToStudy: Word,
-) {
-    var answerOptions = inputAnswerOptions
-        private set
-}
 
 class LearnWordsTrainer(
     private val limitOfCorrectAnswers: Int = 3,

@@ -1,3 +1,7 @@
+package telegramBot
+
+import trainer.LearnWordsTrainer
+
 fun main(args: Array<String>) {
     val botToken = args[0]
     val telegramBot = TelegramBot(botToken)
@@ -6,7 +10,7 @@ fun main(args: Array<String>) {
     var lastUpdateId = 0L
 
     while (true) {
-        Thread.sleep(800)
+        Thread.sleep(UPDATE_REQUEST_TIMEOUT)
         val response = telegramBot.getUpdates(lastUpdateId)
 
         if (!response.ok) {
@@ -27,7 +31,11 @@ fun main(args: Array<String>) {
     }
 }
 
-fun handleUpdate(telegramBot: TelegramBot, updatesForEachChatId: Map<Long, List<Update>>, trainers: HashMap<Long, LearnWordsTrainer>) {
+fun handleUpdate(
+    telegramBot: TelegramBot,
+    updatesForEachChatId: Map<Long, List<Update>>,
+    trainers: HashMap<Long, LearnWordsTrainer>
+) {
     val lastUpdate = updatesForEachChatId.values.last().last()
     val chatId = lastUpdate.chatId ?: return
     val trainer = trainers.getOrPut(chatId) {
