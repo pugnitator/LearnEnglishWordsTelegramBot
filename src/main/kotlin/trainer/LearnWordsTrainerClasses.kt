@@ -1,31 +1,7 @@
+package trainer
 import java.io.File
-import java.lang.IndexOutOfBoundsException
 
-data class Word(
-    val original: String,
-    val translation: String,
-    var numberOfCorrectAnswers: Int = 0
-)
-
-data class Statistics(
-    val numberOfWords: Int,
-    val numberOfLearnedWords: Int,
-    val percentageOfWordsLearned: Float,
-)
-
-class Question(
-    inputAnswerOptions: MutableSet<Word>,
-    val wordToStudy: Word,
-) {
-    var answerOptions = inputAnswerOptions
-        private set
-
-    fun shuffledAnswerOptions() {
-        answerOptions = answerOptions.shuffled().toMutableSet()
-    }
-}
-
-class LearningWordsTrainer(
+class LearnWordsTrainer(
     private val limitOfCorrectAnswers: Int = 3,
     private val numberOfWordsToDisplayed: Int = 4,
     private val wordsFileName: String = "words.txt",
@@ -34,14 +10,16 @@ class LearningWordsTrainer(
     var currentQuestion: Question? = null
         private set
 
-
     private fun loadDictionary(): Set<Word> {
         try {
             val dictionary: MutableSet<Word> = mutableSetOf()
             val wordsFile = File(wordsFileName)
+            if (!wordsFile.exists()) {
+                File("words.txt").copyTo(wordsFile)
+            }
             for (line in wordsFile.readLines()) {
-                val line = line.split('|')
-                dictionary.add(Word(line[0], line[1], line[2].toIntOrNull() ?: 0))
+                val splitLine = line.split('|')
+                dictionary.add(Word(splitLine[0], splitLine[1], splitLine[2].toIntOrNull() ?: 0))
             }
             return dictionary
         } catch (e: IndexOutOfBoundsException) {
@@ -96,5 +74,10 @@ class LearningWordsTrainer(
         val numberOfLearnedWords = getListOfLearnedWords().size
         val percentageOfWordsLearned = numberOfLearnedWords.toFloat() / numberOfWords * 100
         return Statistics(numberOfWords, numberOfLearnedWords, percentageOfWordsLearned)
+    }
+
+    fun resetStatisticsOfLearningWords() {
+        dictionary.forEach { it.numberOfCorrectAnswers = 0 }
+        saveDictionary()
     }
 }

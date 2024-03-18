@@ -1,6 +1,10 @@
-fun main() {
+package consol
+
+import trainer.LearnWordsTrainer
+
+fun main(){
     val trainer = try {
-        LearningWordsTrainer(3, 4)
+        LearnWordsTrainer(3, 4)
     } catch (e: Exception) {
         println("Не удалось загрузить словарь.")
         return
@@ -25,7 +29,6 @@ fun main() {
                                 "Введите номер правильного перевода для слова ${currentQuestion.wordToStudy.original}. " +
                                         "Для выхода введите 0."
                             )
-//                            currentQuestion.shuffledAnswerOptions()
                             currentQuestion.answerOptions.forEachIndexed { index, word -> println("${index + 1}. ${word.translation}") }
                             userAnswer = readln().toIntOrNull()
 
